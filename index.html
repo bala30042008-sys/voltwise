@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VoltWise – Electricity Bill Calculator</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============ LOGIN / REGISTER ============ -->
+<main id="auth" class="auth">
+  <section class="auth-brand">
+    <div class="brand"><svg class="bolt" viewBox="0 0 24 24"><path d="M13.5 2 4 13.5h6.5L9.5 22 20 9.5h-6.8z"/></svg><span>VoltWise</span></div>
+    <h1>Know what your meter will cost you.</h1>
+    <p>Log your units month by month, see the bill build up slab by slab, and watch the year take shape.</p>
+    <ul><li>First 100 units free</li><li>Progressive slab billing in ₹</li><li>Your records stay on this device</li></ul>
+  </section>
+  
+<section class="auth-card">
+  <div class="tabs">
+    <button type="button" data-tab="login" class="on">Sign in</button>
+    <button type="button" data-tab="register">Create account</button>
+  </div>
+
+  <form id="loginForm" novalidate>
+    <label>
+      Username
+      <input id="lUser" autocomplete="username">
+    </label>
+
+    <label>
+      Password
+      <input id="lPass" type="password" autocomplete="current-password">
+    </label>
+
+    <p class="err" id="lErr" role="alert"></p>
+
+    <button class="btn" type="submit">Sign in</button>
+
+    <p class="auth-switch">
+      First time here?
+      <button type="button" id="showRegister">Create account</button>
+    </p>
+  </form>
+
+  <form id="registerForm" novalidate hidden>
+    <label>
+      Username
+      <input id="rUser" autocomplete="username"
+             placeholder="At least 3 characters">
+    </label>
+
+    <label>
+      Password
+      <input id="rPass" type="password" autocomplete="new-password"
+             placeholder="At least 6 characters">
+    </label>
+
+    <label>
+      Confirm password
+      <input id="rPass2" type="password" autocomplete="new-password">
+    </label>
+
+    <p class="err" id="rErr" role="alert"></p>
+
+    <button class="btn" type="submit">Create account</button>
+
+    <p class="auth-switch">
+      Already have an account?
+      <button type="button" id="showLogin">Sign in</button>
+    </p>
+  </form>
+</section>
+</main>
+
+<!-- ============ APP ============ -->
+<div id="app" class="app" hidden>
+  <aside class="side" id="side">
+    <div class="brand"><svg class="bolt" viewBox="0 0 24 24"><path d="M13.5 2 4 13.5h6.5L9.5 22 20 9.5h-6.8z"/></svg><span>VoltWise</span></div>
+    <nav>
+      <button data-view="overview" class="on"><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3zm0 8h8v-6H3zm10 0h8V11h-8zm0-18v6h8V3z"/></svg>Overview</button>
+      <button data-view="readings"><svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V9h14z"/></svg>Monthly Readings</button>
+      <button data-view="rates"><svg viewBox="0 0 24 24"><path d="M4 4h16v3H4zm0 6h16v3H4zm0 6h10v3H4z"/></svg>Rate Guide</button>
+    </nav>
+    <div class="side-foot">
+      <div class="who"><span class="avatar" id="avatar"></span><span id="whoName"></span></div>
+      <button id="signOut" class="out"><svg viewBox="0 0 24 24"><path d="M10 17v-3H3v-4h7V7l5 5zm9-14H12v2h7v14h-7v2h7a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"/></svg>Sign Out</button>
+    </div>
+  </aside>
+  <div class="scrim" id="scrim"></div>
+
+  <main class="main">
+    <header class="top">
+      <button class="burger" id="burger" aria-label="Open menu">☰</button>
+      <h2 id="title">Overview</h2>
+      <label class="year">Year <select id="year"></select></label>
+    </header>
+
+    <!-- Overview -->
+    <section id="v-overview" class="view">
+      <div class="cards">
+        <article class="card stat"><span>Total units used</span><strong id="sUnits">0</strong><small>kWh this year</small></article>
+        <article class="card stat"><span>Total electricity bill</span><strong id="sBill">₹0.00</strong><small>estimated</small></article>
+        <article class="card stat"><span>Average monthly units</span><strong id="sAvgU">0</strong><small id="sCount">0 months saved</small></article>
+        <article class="card stat"><span>Average monthly bill</span><strong id="sAvgB">₹0.00</strong><small>per saved month</small></article>
+      </div>
+      <div class="grid2">
+        <article class="card"><h3>Monthly electricity expense</h3><div class="chart"><canvas id="billChart"></canvas></div><p class="hint">Grey bars are months without a saved reading.</p></article>
+        <article class="card"><h3>Monthly consumption (units)</h3><div class="chart"><canvas id="unitChart"></canvas></div></article>
+      </div>
+      <article class="card"><h3>Monthly tracker</h3><div id="tracker" class="tracker"></div></article>
+      <article class="card"><h3>Bill-rate guide</h3><div id="miniRates"></div></article>
+    </section>
+
+    <!-- Monthly readings -->
+    <section id="v-readings" class="view" hidden>
+      <p class="lead">Enter the units from your meter for each month, then save. Each month is saved on its own.</p>
+      <div id="monthGrid" class="months"></div>
+    </section>
+
+    <!-- Rate guide -->
+    <section id="v-rates" class="view" hidden>
+      <div class="grid2">
+        <article class="card"><h3>Progressive tariff slabs</h3><div id="slabTable"></div></article>
+        <article class="card"><h3>Try a sample calculation</h3>
+          <label class="inline">Units <input id="sample" type="number" min="0" value="250"></label>
+          <div id="sampleOut"></div>
+        </article>
+      </div>
+      <article class="card"><h3>How the bill is calculated</h3>
+        <p>Each slice of your usage is charged at the rate of the slab it falls in. A unit in the 101–200 slab costs ₹4.70 even if your total is 900 units; the higher rates apply only to the units above each slab boundary.</p>
+        <p>The first 100 units are free under an assumed subsidy. Your bill is the sum of every slab's units × rate.</p>
+        <p class="note">These are configurable example rates (edit the <code>SLABS</code> list in <code>app.js</code>). Actual tariffs and subsidies depend on your electricity provider and applicable rules.</p>
+      </article>
+    </section>
+  </main>
+</div>
+
+<div id="toast" class="toast" role="status"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
