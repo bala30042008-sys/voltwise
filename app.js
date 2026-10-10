@@ -26,7 +26,7 @@ const MONTHS = [
   'September', 'October', 'November', 'December'
 ];
 
-const API_BASE = 'http://127.0.0.1:8000';
+const API_BASE = 'postgresql://voltwise_db_user:BPaOOQKNFH7UmpWLF0jNhwvev8rijA8X@dpg-db573ed9fdbs73brfrng-a/voltwise_db';
 
 const SESSION = 'vw_session';
 const TOKEN_KEY = 'vw_access_token';
